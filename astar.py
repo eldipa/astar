@@ -1,25 +1,13 @@
 from heapq import heapify, heappush, heappop
 
-COST_FROM_TO = {
-   (1,1): 0,
-   (1,2): 9,
-   (1,3): 9,
-   (1,4): 1,
-   (2,1): 1,
-   (2,2): 0,
-   (2,3): 1,
-   (2,4): 1,
-   (3,1): 1,
-   (3,2): 1,
-   (3,3): 0,
-   (3,4): 1,
-   (4,1): 1,
-   (4,2): 1,
-   (4,3): 9,
-   (4,4): 0,
-}
+COUNT_CITIES = 3
 
-CITIES = [1, 2, 3, 4]
+COST_FROM_TO = dict([((i,j), 1) for i in range(COUNT_CITIES) for j in range(COUNT_CITIES)])
+
+for i in range(COUNT_CITIES):
+   COST_FROM_TO[(i,i)] = 0
+
+CITIES = list(range(COUNT_CITIES))
 
 def HeuristicCost(node):
    return 0
@@ -38,7 +26,7 @@ class Node(object):
       self.predicted_total_cost_F = self.partial_cost_G + self.heuristic_remain_cost_H()
 
    def heuristic_remain_cost_H(self):
-      return 0
+      return COUNT_CITIES - len(self.build_path())
 
    def cost_to_go_to(self, to_node):
       return COST_FROM_TO[(self.name, to_node.name)]
@@ -69,8 +57,6 @@ class Node(object):
    def __repr__(self):
       return str(self.name)
 
-   def __lt__(self, other):
-      return self.predicted_total_cost_F < other.predicted_total_cost_F
 
 def find_path(possible_starting_points):
    open_list   = []
@@ -81,11 +67,15 @@ def find_path(possible_starting_points):
       n = Node(name=p, parent=None)
       open_list.append(n)
 
-   heapify(open_list)
+   open_list = [n for F, n in sorted([(n.predicted_total_cost_F, n) for n in open_list])]
+   assert 0 < open_list[0] and all([open_list[i] <= open_list[i+1] for i in range(len(open_list)-1)])
  
    #import pdb; pdb.set_trace()  
    while open_list:
       # search for the minimun next node
+      open_list = [n for F, n in sorted([(n.predicted_total_cost_F, n) for n in open_list])]
+      assert 0 < open_list[0] and all([open_list[i] <= open_list[i+1] for i in range(len(open_list)-1)])
+      
       current_node = open_list[0]
 
       # did we found the solution?
@@ -93,7 +83,7 @@ def find_path(possible_starting_points):
          return current_node
 
       # we still searching the solution,
-      heappop(open_list)
+      del open_list[0]
       closed_list.append(current_node)
 
       # review the next nodes (adjacents)
@@ -104,14 +94,15 @@ def find_path(possible_starting_points):
             continue # ignore this
 
          if n.name not in [q.name for q in open_list]:
-            heappush(open_list, n)
+            open_list.append(n)
             continue    # this is new, add it to process later
 
          assert n.name in [q.name for q in open_list]   # if we reach here, the node is already know
 
          old_node = filter(lambda q: q.name == n.name, open_list)[0]
          if old_node.partial_cost_G > n.partial_cost_G:
-            heappush(open_list, n) # XXX we dont remove the old "worst and heavy" node, works if exists a solution but waste a lot of memory!!
+            open_list.remove(old_node)
+            open_list.append(n) 
             continue    # the node is better, update!
 
          # nothing, the node is worst, ignore it
