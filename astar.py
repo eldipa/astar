@@ -28,12 +28,18 @@ class Node(object):
       self.parent = parent
       if parent:
          self.path_length = parent.path_length + 1
-         self.cost_current_G = parent.cost_current_G + COST_FROM_TO[(parent.name, self.name)]
+         self.partial_cost_G = parent.partial_cost_G + parent.cost_to_go_to(self)
       else:
          self.path_length = 1
-         self.cost_current_G = 0
+         self.partial_cost_G = 0
 
-      self.cost_predicted_F = self.cost_current_G + HeuristicCost(self)
+      self.total_predicted_cost_F = self.partial_cost_G + self.heuristic_remain_cost_H()
+
+   def heuristic_remain_cost_H(self):
+      return 0
+
+   def cost_to_go_to(self, to_node):
+      return COST_FROM_TO[(self.name, to_node.name)]
 
    def is_solution(self):
       return self.path_length == len(CITIES)
@@ -77,8 +83,8 @@ def find_path(possible_starting_points):
       min_cost = 2**30
       current_node = None
       for n in open_list:
-         if n.cost_predicted_F < min_cost:
-            min_cost = n.cost_predicted_F
+         if n.total_predicted_cost_F < min_cost:
+            min_cost = n.total_predicted_cost_F
             current_node = n
 
 
@@ -104,7 +110,7 @@ def find_path(possible_starting_points):
          assert n.name in [q.name for q in open_list]   # if we reach here, the node is already know
 
          old_node = filter(lambda q: q.name == n.name, open_list)[0]
-         if old_node.cost_current_G > n.cost_current_G:
+         if old_node.partial_cost_G > n.partial_cost_G:
             open_list.remove(old_node)
             open_list.append(n)
             continue    # the node is better, update!
