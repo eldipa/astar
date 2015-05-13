@@ -1,6 +1,6 @@
 from heapq import heapify, heappush, heappop
 
-COUNT_CITIES = 3
+COUNT_CITIES = 10
 
 COST_FROM_TO = dict([((i,j), 1) for i in range(COUNT_CITIES) for j in range(COUNT_CITIES)])
 
@@ -23,6 +23,7 @@ class Node(object):
          self.path_length = 1
          self.partial_cost_G = 0
 
+      self.id = frozenset(self.build_path())
       self.predicted_total_cost_F = self.partial_cost_G + self.heuristic_remain_cost_H()
 
    def heuristic_remain_cost_H(self):
@@ -52,10 +53,10 @@ class Node(object):
          return [self.name]
 
    def __str__(self):
-      return str(self.name)
+      return str(self.name) + " -> " + str(self.build_path())
 
    def __repr__(self):
-      return str(self.name)
+      return str(self.name) + " -> " + str(self.build_path())
 
 
 def find_path(possible_starting_points):
@@ -90,16 +91,16 @@ def find_path(possible_starting_points):
       next_nodes = current_node.next_nodes()
       
       for n in next_nodes:
-         if n.name in [q.name for q in closed_list]:
+         if n.id in [q.id for q in closed_list]:
             continue # ignore this
 
-         if n.name not in [q.name for q in open_list]:
+         if n.id not in [q.id for q in open_list]:
             open_list.append(n)
             continue    # this is new, add it to process later
 
-         assert n.name in [q.name for q in open_list]   # if we reach here, the node is already know
+         assert n.id in [q.id for q in open_list]   # if we reach here, the node is already know
 
-         old_node = filter(lambda q: q.name == n.name, open_list)[0]
+         old_node = filter(lambda q: q.id == n.id, open_list)[0]
          if old_node.partial_cost_G > n.partial_cost_G:
             open_list.remove(old_node)
             open_list.append(n) 
