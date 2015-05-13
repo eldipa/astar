@@ -1,3 +1,5 @@
+from heapq import heapify, heappush, heappop
+
 COST_FROM_TO = {
    (1,1): 0,
    (1,2): 9,
@@ -33,7 +35,7 @@ class Node(object):
          self.path_length = 1
          self.partial_cost_G = 0
 
-      self.total_predicted_cost_F = self.partial_cost_G + self.heuristic_remain_cost_H()
+      self.predicted_total_cost_F = self.partial_cost_G + self.heuristic_remain_cost_H()
 
    def heuristic_remain_cost_H(self):
       return 0
@@ -67,6 +69,9 @@ class Node(object):
    def __repr__(self):
       return str(self.name)
 
+   def __lt__(self, other):
+      return self.predicted_total_cost_F < other.predicted_total_cost_F
+
 def find_path(possible_starting_points):
    open_list   = []
    closed_list = []
@@ -76,24 +81,19 @@ def find_path(possible_starting_points):
       n = Node(name=p, parent=None)
       open_list.append(n)
 
+   heapify(open_list)
  
    #import pdb; pdb.set_trace()  
    while open_list:
       # search for the minimun next node
-      min_cost = 2**30
-      current_node = None
-      for n in open_list:
-         if n.total_predicted_cost_F < min_cost:
-            min_cost = n.total_predicted_cost_F
-            current_node = n
-
+      current_node = open_list[0]
 
       # did we found the solution?
       if current_node.is_solution():
          return current_node
 
       # we still searching the solution,
-      open_list.remove(current_node)
+      heappop(open_list)
       closed_list.append(current_node)
 
       # review the next nodes (adjacents)
@@ -104,15 +104,14 @@ def find_path(possible_starting_points):
             continue # ignore this
 
          if n.name not in [q.name for q in open_list]:
-            open_list.append(n)
+            heappush(open_list, n)
             continue    # this is new, add it to process later
 
          assert n.name in [q.name for q in open_list]   # if we reach here, the node is already know
 
          old_node = filter(lambda q: q.name == n.name, open_list)[0]
          if old_node.partial_cost_G > n.partial_cost_G:
-            open_list.remove(old_node)
-            open_list.append(n)
+            heappush(open_list, n) # XXX we dont remove the old "worst and heavy" node, works if exists a solution but waste a lot of memory!!
             continue    # the node is better, update!
 
          # nothing, the node is worst, ignore it
