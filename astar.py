@@ -1,16 +1,8 @@
 from heapq import heapify, heappush, heappop
 
-COUNT_CITIES = 10
+class ProbleDefinition(object):
+   pass # define me
 
-COST_FROM_TO = dict([((i,j), 1) for i in range(COUNT_CITIES) for j in range(COUNT_CITIES)])
-
-for i in range(COUNT_CITIES):
-   COST_FROM_TO[(i,i)] = 0
-
-CITIES = list(range(COUNT_CITIES))
-
-def HeuristicCost(node):
-   return 0
 
 class Node(object):
    def __init__(self, name, parent):
@@ -27,16 +19,16 @@ class Node(object):
       self.predicted_total_cost_F = self.partial_cost_G + self.heuristic_remain_cost_H()
 
    def heuristic_remain_cost_H(self):
-      return COUNT_CITIES - len(self.build_path())
+      return ProbleDefinition.COUNT_CITIES - len(self.build_path())
 
    def cost_to_go_to(self, to_node):
-      return COST_FROM_TO[(self.name, to_node.name)]
+      return ProbleDefinition.COST_FROM_TO[(self.name, to_node.name)]
 
    def is_solution(self):
-      return self.path_length == len(CITIES)
+      return self.path_length == len(ProbleDefinition.CITIES)
 
    def next_nodes(self):
-      all_cities = set(CITIES);
+      all_cities = set(ProbleDefinition.CITIES);
       next_cities = all_cities - set(self.build_path()) # not visited cities
 
       nodes = []
@@ -69,14 +61,11 @@ def find_path(possible_starting_points):
       open_list.append(n)
 
    open_list = [n for F, n in sorted([(n.predicted_total_cost_F, n) for n in open_list])]
-   assert 0 < open_list[0] and all([open_list[i] <= open_list[i+1] for i in range(len(open_list)-1)])
  
    #import pdb; pdb.set_trace()  
    while open_list:
       # search for the minimun next node
       open_list = [n for F, n in sorted([(n.predicted_total_cost_F, n) for n in open_list])]
-      assert 0 < open_list[0] and all([open_list[i] <= open_list[i+1] for i in range(len(open_list)-1)])
-      
       current_node = open_list[0]
 
       # did we found the solution?
