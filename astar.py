@@ -61,20 +61,19 @@ def find_path(possible_starting_points):
       n = Node(name=p, parent=None)
       open_list.append(n)
 
-   open_list = [n for F, n in sorted([(n.predicted_total_cost_F, n) for n in open_list])]
+   open_list = dict([(n.id, n) for F, n in sorted([(n.predicted_total_cost_F, n) for n in open_list])])
  
    #import pdb; pdb.set_trace()  
    while open_list:
       # search for the minimun next node
-      open_list = [n for F, n in sorted([(n.predicted_total_cost_F, n) for n in open_list])]
-      current_node = open_list[0]
+      current_node = [n for F, n in sorted([(n.predicted_total_cost_F, n) for n in open_list.values()])][0]
 
       # did we found the solution?
       if current_node.is_solution():
          return current_node
 
       # we still searching the solution,
-      del open_list[0]
+      del open_list[current_node.id]
       closed_list.append(current_node)
 
       # review the next nodes (adjacents)
@@ -84,16 +83,15 @@ def find_path(possible_starting_points):
          if n.id in [q.id for q in closed_list]:
             continue # ignore this
 
-         if n.id not in [q.id for q in open_list]:
-            open_list.append(n)
+         if n.id not in open_list:
+            open_list[n.id] = n
             continue    # this is new, add it to process later
 
-         assert n.id in [q.id for q in open_list]   # if we reach here, the node is already know
+         assert n.id in open_list   # if we reach here, the node is already know
 
-         old_node = filter(lambda q: q.id == n.id, open_list)[0]
+         old_node = open_list[n.id]
          if old_node.partial_cost_G > n.partial_cost_G:
-            open_list.remove(old_node)
-            open_list.append(n) 
+            open_list[n.id] = n
             continue    # the node is better, update!
 
          # nothing, the node is worst, ignore it
