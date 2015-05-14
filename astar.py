@@ -20,6 +20,15 @@ class Node(object):
 
       self.predicted_total_cost_F = self.partial_cost_G + self.heuristic_remain_cost_H()
 
+   def update(self, other_node):
+      assert other_node.id == self.id
+      self.is_closed = other_node.is_closed
+      self.name =  other_node.name
+      self.parent =  other_node.parent
+      self.path_length =  other_node.path_length
+      self.partial_cost_G =  other_node.partial_cost_G
+      self.predicted_total_cost_F =  other_node.predicted_total_cost_F
+
    def heuristic_remain_cost_H(self):
       return ProbleDefinition.COUNT_CITIES - len(self.id)
 
@@ -62,12 +71,14 @@ def find_path(possible_starting_points):
       n = Node(name=p, parent=None)
       open_list.append(n)
 
+   open_list_by_cost = [(n.predicted_total_cost_F, n) for n in open_list]
+   heapify(open_list_by_cost)
    open_list = dict([(n.id, n) for F, n in sorted([(n.predicted_total_cost_F, n) for n in open_list])])
  
    #import pdb; pdb.set_trace()  
    while open_list:
       # search for the minimun next node
-      current_node = [n for F, n in sorted([(n.predicted_total_cost_F, n) for n in open_list.values()])][0]
+      current_node = open_list_by_cost[0][1]
 
       # did we found the solution?
       if current_node.is_solution():
@@ -75,26 +86,34 @@ def find_path(possible_starting_points):
 
       # we still searching the solution,
       del open_list[current_node.id]
+      heappop(open_list_by_cost)
       current_node.is_closed = True
 
       # review the next nodes (adjacents)
       next_nodes = current_node.next_nodes()
       
+      open_list_by_cost_unordered = False
       for n in next_nodes:
          if n.is_closed:
             continue # ignore this
 
          if n.id not in open_list:
             open_list[n.id] = n
+            heappush(open_list_by_cost, (n.predicted_total_cost_F, n))
             continue    # this is new, add it to process later
 
          assert n.id in open_list   # if we reach here, the node is already know
 
          old_node = open_list[n.id]
          if old_node.partial_cost_G > n.partial_cost_G:
-            open_list[n.id] = n
+            old_node.update(n)
+            open_list_by_cost_unordered = True
             continue    # the node is better, update!
 
          # nothing, the node is worst, ignore it
+
+      # the open list with the cost is dirty, rebuild
+      if open_list_by_cost_unordered:
+         heapify(open_list_by_cost)
 
    return None # no path found, sorry
