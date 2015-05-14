@@ -27,7 +27,7 @@ def generate_problem(num_cities, ProbleDefinition):
    # force the cost of the last path (close the circuit)
    COST_FROM_TO[(shortest_path_permutation[-1], shortest_path_permutation[0])] = shortest_path_costs[-1]
    
-   ProbleDefinition.CITIES = cities
+   ProbleDefinition.CITIES = frozenset(cities)
    ProbleDefinition.SOLUTION = shortest_path_permutation
    ProbleDefinition.COST_FROM_TO = COST_FROM_TO
    ProbleDefinition.COUNT_CITIES = len(cities)

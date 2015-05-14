@@ -34,7 +34,7 @@ class Node(object):
       self.predicted_total_cost_F =  other_node.predicted_total_cost_F
 
    def heuristic_remain_cost_H(self):
-      return ProbleDefinition.COUNT_CITIES - len(self.id)
+      return 0# ProbleDefinition.COUNT_CITIES - len(self.id)
 
    def cost_to_go_to(self, to_node):
       return ProbleDefinition.COST_FROM_TO[(self.name, to_node.name)]
@@ -43,15 +43,8 @@ class Node(object):
       return self.path_length == len(ProbleDefinition.CITIES)
 
    def next_nodes(self):
-      all_cities = set(ProbleDefinition.CITIES);
-      next_cities = all_cities - self.id # not visited cities
-
-      nodes = []
-      for c in next_cities:
-         n = Node(name=c, parent=self)
-         nodes.append(n)
-
-      return nodes
+      next_cities = ProbleDefinition.CITIES - self.id # not visited cities
+      return [Node(name=c, parent=self) for c in next_cities]
 
    def build_path(self):
       if self.parent:
