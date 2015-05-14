@@ -5,6 +5,9 @@ class ProbleDefinition(object):
 
 
 class Node(object):
+   __slots__ = ('is_closed', 'is_garbage', 'name', 'parent', 'id', 
+                'path_length', 'partial_cost_G', 'predicted_total_cost_F')
+
    def __init__(self, name, parent):
       self.is_closed = False
       self.is_garbage = False
