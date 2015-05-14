@@ -7,6 +7,7 @@ class ProbleDefinition(object):
 class Node(object):
    def __init__(self, name, parent):
       self.is_closed = False
+      self.is_garbage = False
       self.name = name
       self.parent = parent
       if parent:
@@ -80,6 +81,10 @@ def find_path(possible_starting_points):
       # search for the minimun next node
       current_node = open_list_by_cost[0][1]
 
+      if current_node.is_garbage:
+         heappop(open_list_by_cost) # remove and discard, this node is just garbage
+         continue
+
       # did we found the solution?
       if current_node.is_solution():
          return current_node
@@ -106,14 +111,11 @@ def find_path(possible_starting_points):
 
          old_node = open_list[n.id]
          if old_node.partial_cost_G > n.partial_cost_G:
-            old_node.update(n)
-            open_list_by_cost_unordered = True
+            open_list[n.id] = n
+            old_node.is_garbage = True # dont pop the old node, just mark it as garbage
+            heappush(open_list_by_cost, (n.predicted_total_cost_F, n)) 
             continue    # the node is better, update!
 
          # nothing, the node is worst, ignore it
-
-      # the open list with the cost is dirty, rebuild
-      if open_list_by_cost_unordered:
-         heapify(open_list_by_cost)
 
    return None # no path found, sorry
