@@ -6,6 +6,7 @@ class ProbleDefinition(object):
 
 class Node(object):
    def __init__(self, name, parent):
+      self.is_closed = False
       self.name = name
       self.parent = parent
       if parent:
@@ -74,13 +75,13 @@ def find_path(possible_starting_points):
 
       # we still searching the solution,
       del open_list[current_node.id]
-      closed_list.append(current_node)
+      current_node.is_closed = True
 
       # review the next nodes (adjacents)
       next_nodes = current_node.next_nodes()
       
       for n in next_nodes:
-         if n.id in [q.id for q in closed_list]:
+         if n.is_closed:
             continue # ignore this
 
          if n.id not in open_list:
