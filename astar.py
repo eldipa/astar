@@ -9,17 +9,18 @@ class Node(object):
       self.name = name
       self.parent = parent
       if parent:
+         self.id = parent.id.union(frozenset([self.name]))
          self.path_length = parent.path_length + 1
          self.partial_cost_G = parent.partial_cost_G + parent.cost_to_go_to(self)
       else:
+         self.id = frozenset([self.name])
          self.path_length = 1
          self.partial_cost_G = 0
 
-      self.id = frozenset(self.build_path())
       self.predicted_total_cost_F = self.partial_cost_G + self.heuristic_remain_cost_H()
 
    def heuristic_remain_cost_H(self):
-      return ProbleDefinition.COUNT_CITIES - len(self.build_path())
+      return ProbleDefinition.COUNT_CITIES - len(self.id)
 
    def cost_to_go_to(self, to_node):
       return ProbleDefinition.COST_FROM_TO[(self.name, to_node.name)]
@@ -29,7 +30,7 @@ class Node(object):
 
    def next_nodes(self):
       all_cities = set(ProbleDefinition.CITIES);
-      next_cities = all_cities - set(self.build_path()) # not visited cities
+      next_cities = all_cities - self.id # not visited cities
 
       nodes = []
       for c in next_cities:
