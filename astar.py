@@ -5,6 +5,11 @@ class ProblemDefinition(object):
 
 
 class Node(object):
+   __slots__ = ('is_closed', 'is_garbage',
+                'path', 'path_cost',
+                'is_solution',
+                'predicted_total_cost_F', )
+
    def __init__(self, path, path_cost):
       self.is_closed = False
       self.is_garbage = False
@@ -12,12 +17,9 @@ class Node(object):
       self.path = path
       self.path_cost = path_cost
 
-      self.partial_cost_G = path_cost
       self.is_solution = (len(path) == ProblemDefinition.COUNT_CITIES + 1)
       
-      self.id = path
-
-      self.predicted_total_cost_F = self.partial_cost_G + self.heuristic_remain_cost_H()
+      self.predicted_total_cost_F = self.path_cost + self.heuristic_remain_cost_H()
 
 
    def heuristic_remain_cost_H(self):
@@ -53,7 +55,7 @@ def find_path(possible_starting_points):
 
    open_list_by_cost = [(n.predicted_total_cost_F, n) for n in open_list]
    heapify(open_list_by_cost)
-   open_list = dict([(n.id, n) for F, n in sorted([(n.predicted_total_cost_F, n) for n in open_list])])
+   open_list = dict([(n.path, n) for F, n in sorted([(n.predicted_total_cost_F, n) for n in open_list])])
  
    #import pdb; pdb.set_trace()  
    while open_list:
@@ -69,7 +71,7 @@ def find_path(possible_starting_points):
          return current_node
 
       # we still searching the solution,
-      del open_list[current_node.id]
+      del open_list[current_node.path]
       heappop(open_list_by_cost)
       current_node.is_closed = True
 
@@ -81,16 +83,16 @@ def find_path(possible_starting_points):
          if n.is_closed:
             continue # ignore this
 
-         if n.id not in open_list:
-            open_list[n.id] = n
+         if n.path not in open_list:
+            open_list[n.path] = n
             heappush(open_list_by_cost, (n.predicted_total_cost_F, n))
             continue    # this is new, add it to process later
 
-         assert n.id in open_list   # if we reach here, the node is already know
+         assert n.path in open_list   # if we reach here, the node is already know
 
-         old_node = open_list[n.id]
-         if old_node.partial_cost_G > n.partial_cost_G:
-            open_list[n.id] = n
+         old_node = open_list[n.path]
+         if old_node.path_cost > n.path_cost: # compare the "G" cost
+            open_list[n.path] = n
             old_node.is_garbage = True # dont pop the old node, just mark it as garbage
             heappush(open_list_by_cost, (n.predicted_total_cost_F, n)) 
             continue    # the node is better, update!
