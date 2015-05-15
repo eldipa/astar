@@ -1,6 +1,6 @@
 import random
 
-def generate_problem(num_cities, ProbleDefinition):
+def generate_problem(num_cities, ProblemDefinition):
    # build the cities
    cities = list(range(num_cities))
 
@@ -27,14 +27,14 @@ def generate_problem(num_cities, ProbleDefinition):
    # force the cost of the last path (close the circuit)
    COST_FROM_TO[(shortest_path_permutation[-1], shortest_path_permutation[0])] = shortest_path_costs[-1]
    
-   ProbleDefinition.CITIES = frozenset(cities)
-   ProbleDefinition.SOLUTION = shortest_path_permutation
-   ProbleDefinition.SOLUTION_COST = shortest_path_total_cost
-   ProbleDefinition.COST_FROM_TO = COST_FROM_TO
-   ProbleDefinition.COUNT_CITIES = len(cities)
+   ProblemDefinition.CITIES = frozenset(cities)
+   ProblemDefinition.SOLUTION = shortest_path_permutation
+   ProblemDefinition.SOLUTION_COST = shortest_path_total_cost
+   ProblemDefinition.COST_FROM_TO = COST_FROM_TO
+   ProblemDefinition.COUNT_CITIES = len(cities)
    
 
-def load_problem(filename, ProbleDefinition, filename_solution=None):
+def load_problem(filename, ProblemDefinition, filename_solution=None):
 
    with open(filename, 'r') as source:
       data = map(int, filter(None, map(lambda s: s.strip(), source.read().split(";"))))
@@ -62,29 +62,29 @@ def load_problem(filename, ProbleDefinition, filename_solution=None):
    for i in cities:
       COST_FROM_TO[(i,i)] = 0
 
-   ProbleDefinition.CITIES = frozenset(cities)
-   ProbleDefinition.SOLUTION = None # unknown
-   ProbleDefinition.SOLUTION_COST = None # unknown
-   ProbleDefinition.COST_FROM_TO = COST_FROM_TO
-   ProbleDefinition.COUNT_CITIES = len(cities)
+   ProblemDefinition.CITIES = frozenset(cities)
+   ProblemDefinition.SOLUTION = None # unknown
+   ProblemDefinition.SOLUTION_COST = None # unknown
+   ProblemDefinition.COST_FROM_TO = COST_FROM_TO
+   ProblemDefinition.COUNT_CITIES = len(cities)
    
    if filename_solution:
       with open(filename_solution, 'r') as source:
          data = map(int, filter(None, map(lambda s: s.strip(), source.read().split(";")))[:-1])
          
-      ProbleDefinition.SOLUTION = data[:len(cities)]
-      ProbleDefinition.SOLUTION_COST = data[len(cities)+1]
+      ProblemDefinition.SOLUTION = tuple(data[:len(cities)+1])
+      ProblemDefinition.SOLUTION_COST = data[len(cities)+1]
 
 def test(filename, filename_solution):
    import astar
-   load_problem(filename, astar.ProbleDefinition, filename_solution)
+   load_problem(filename, astar.ProblemDefinition, filename_solution)
 
    solution_node = astar.find_path([0])
-   solution = str(solution_node.build_path()[1:])
-   solution_cost = solution_node._cost()
+   solution = str(tuple(solution_node.path))
+   solution_cost = solution_node.path_cost
 
-   expected_solution = str(astar.ProbleDefinition.SOLUTION)
-   expected_cost = astar.ProbleDefinition.SOLUTION_COST
+   expected_solution = str(astar.ProblemDefinition.SOLUTION)
+   expected_cost = astar.ProblemDefinition.SOLUTION_COST
 
    if expected_solution != solution or expected_cost != solution_cost:
       print "Solution found    : (%i) %s" % (solution_cost, solution)

@@ -1,62 +1,45 @@
 from heapq import heapify, heappush, heappop
 
-class ProbleDefinition(object):
+class ProblemDefinition(object):
    pass # define me
 
 
 class Node(object):
-   __slots__ = ('is_closed', 'is_garbage', 'name', 'parent', 'id', 
-                'path_length', 'partial_cost_G', 'predicted_total_cost_F')
-
-   def __init__(self, name, parent):
+   def __init__(self, path, path_cost):
       self.is_closed = False
       self.is_garbage = False
-      self.name = name
-      self.parent = parent
-      if parent:
-         self.id = parent.id.union(frozenset([self.name]))
-         self.path_length = parent.path_length + 1
-         self.partial_cost_G = parent.partial_cost_G + parent.cost_to_go_to(self)
-      else:
-         self.id = frozenset([self.name])
-         self.path_length = 1
-         self.partial_cost_G = 0
+
+      self.path = path
+      self.path_cost = path_cost
+
+      self.partial_cost_G = path_cost
+      self.is_solution = (len(path) == ProblemDefinition.COUNT_CITIES + 1)
+      
+      self.id = path
 
       self.predicted_total_cost_F = self.partial_cost_G + self.heuristic_remain_cost_H()
 
-   def update(self, other_node):
-      assert other_node.id == self.id
-      self.is_closed = other_node.is_closed
-      self.name =  other_node.name
-      self.parent =  other_node.parent
-      self.path_length =  other_node.path_length
-      self.partial_cost_G =  other_node.partial_cost_G
-      self.predicted_total_cost_F =  other_node.predicted_total_cost_F
 
    def heuristic_remain_cost_H(self):
-      return 0# ProbleDefinition.COUNT_CITIES - len(self.id)
-
-   def cost_to_go_to(self, to_node):
-      return ProbleDefinition.COST_FROM_TO[(self.name, to_node.name)]
-
-   def is_solution(self):
-      return self.path_length == len(ProbleDefinition.CITIES)
+      return 0# ProblemDefinition.COUNT_CITIES - len(self.id)
 
    def next_nodes(self):
-      next_cities = ProbleDefinition.CITIES - self.id # not visited cities
-      return [Node(name=c, parent=self) for c in next_cities]
-
-   def build_path(self):
-      if self.parent:
-         return self.parent.build_path() + [self.name]
+      if len(self.path) == ProblemDefinition.COUNT_CITIES:
+         return [Node(path = self.path + (self.path[0],), 
+                      path_cost = self.path_cost + ProblemDefinition.COST_FROM_TO[(self.path[-1], self.path[0])])]
       else:
-         return [self.name]
+         assert len(self.path) < ProblemDefinition.COUNT_CITIES
+         next_cities = ProblemDefinition.CITIES - set(self.path) # not visited cities
+
+         return [Node(path = self.path + (next_city,),
+                      path_cost = self.path_cost + ProblemDefinition.COST_FROM_TO[(self.path[-1], next_city)])
+                        for next_city in next_cities]
 
    def __str__(self):
-      return str(self.name) + " -> " + str(self.build_path())
+      return str(self.path) + " cost: " + str(self.path_cost)
 
    def __repr__(self):
-      return str(self.name) + " -> " + str(self.build_path())
+      return str(self)
 
 
 def find_path(possible_starting_points):
@@ -65,7 +48,7 @@ def find_path(possible_starting_points):
 
    # set up, initialize the open list
    for p in possible_starting_points:
-      n = Node(name=p, parent=None)
+      n = Node(path=(p,), path_cost=0)
       open_list.append(n)
 
    open_list_by_cost = [(n.predicted_total_cost_F, n) for n in open_list]
@@ -82,7 +65,7 @@ def find_path(possible_starting_points):
          continue
 
       # did we found the solution?
-      if current_node.is_solution():
+      if current_node.is_solution:
          return current_node
 
       # we still searching the solution,
