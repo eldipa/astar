@@ -8,6 +8,7 @@ class Node(object):
    __slots__ = ('is_closed', 'is_garbage',
                 'path', 'path_cost',
                 'is_solution',
+                'name',
                 'predicted_total_cost_F', )
 
    def __init__(self, path, path_cost):
@@ -18,12 +19,13 @@ class Node(object):
       self.path_cost = path_cost
 
       self.is_solution = (len(path) == ProblemDefinition.COUNT_CITIES + 1)
+      self.name = frozenset(self.path + ("Closed",)) if self.is_solution else frozenset(self.path) 
       
       self.predicted_total_cost_F = self.path_cost + self.heuristic_remain_cost_H()
 
 
    def heuristic_remain_cost_H(self):
-      return 0# ProblemDefinition.COUNT_CITIES - len(self.id)
+      return 0 #(ProblemDefinition.COUNT_CITIES - len(self.path)) * ProblemDefinition.MEAN
 
    def next_nodes(self):
       if len(self.path) == ProblemDefinition.COUNT_CITIES:
