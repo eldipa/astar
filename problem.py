@@ -29,5 +29,66 @@ def generate_problem(num_cities, ProbleDefinition):
    
    ProbleDefinition.CITIES = frozenset(cities)
    ProbleDefinition.SOLUTION = shortest_path_permutation
+   ProbleDefinition.SOLUTION_COST = shortest_path_total_cost
    ProbleDefinition.COST_FROM_TO = COST_FROM_TO
    ProbleDefinition.COUNT_CITIES = len(cities)
+   
+
+def load_problem(filename, ProbleDefinition, filename_solution=None):
+
+   with open(filename, 'r') as source:
+      data = map(int, filter(None, map(lambda s: s.strip(), source.read().split(";"))))
+
+   count_of_cities = data[0]
+   costs = data[1:]
+
+   expected_count_of_costs = count_of_cities * int(count_of_cities/2) if \
+                                                         count_of_cities % 2 == 1 \
+                             else count_of_cities * ((count_of_cities/2)-1) + (count_of_cities/2)
+   assert len(costs) == expected_count_of_costs
+
+   cities = range(count_of_cities)
+   N = len(cities)
+
+   # create the city mesh (all the paths and costs)
+   COST_FROM_TO = {}
+   x = 0
+   for i in range(N-1):
+      for j in range(i+1, N):
+         COST_FROM_TO[(i,j)] = COST_FROM_TO[(j,i)] = costs[x]
+         x += 1
+
+   # explicit cost for self
+   for i in cities:
+      COST_FROM_TO[(i,i)] = 0
+
+   ProbleDefinition.CITIES = frozenset(cities)
+   ProbleDefinition.SOLUTION = None # unknown
+   ProbleDefinition.SOLUTION_COST = None # unknown
+   ProbleDefinition.COST_FROM_TO = COST_FROM_TO
+   ProbleDefinition.COUNT_CITIES = len(cities)
+   
+   if filename_solution:
+      with open(filename_solution, 'r') as source:
+         data = map(int, filter(None, map(lambda s: s.strip(), source.read().split(";")))[:-1])
+         
+      ProbleDefinition.SOLUTION = data[:len(cities)]
+      ProbleDefinition.SOLUTION_COST = data[len(cities)+1]
+
+def test(filename, filename_solution):
+   import astar
+   load_problem(filename, astar.ProbleDefinition, filename_solution)
+
+   solution_node = astar.find_path([0])
+   solution = str(solution_node.build_path()[1:])
+   solution_cost = solution_node._cost()
+
+   expected_solution = str(astar.ProbleDefinition.SOLUTION)
+   expected_cost = astar.ProbleDefinition.SOLUTION_COST
+
+   if expected_solution != solution or expected_cost != solution_cost:
+      print "Solution found    : (%i) %s" % (solution_cost, solution)
+      print "Solution expected : (%i) %s" % (expected_cost, expected_solution)
+
+   else:
+      print "Ok"
