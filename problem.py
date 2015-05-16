@@ -16,10 +16,6 @@ def generate_problem(num_cities, ProblemDefinition):
    base = int(shortest_path_total_cost / (len(cities) * 0.5))
    COST_FROM_TO = dict([((i,j), random.randint(1, 10) + base) for i in cities for j in cities])
 
-   # explicit cost for self
-   for i in cities:
-      COST_FROM_TO[(i,i)] = 0
-
    # force the costs for the solution
    for i in range(len(shortest_path_permutation) - 1):
       COST_FROM_TO[(shortest_path_permutation[i], shortest_path_permutation[i+1])] = shortest_path_costs[i]
@@ -33,6 +29,11 @@ def generate_problem(num_cities, ProblemDefinition):
    ProblemDefinition.COST_FROM_TO = COST_FROM_TO
    ProblemDefinition.COUNT_CITIES = len(cities)
    
+   ProblemDefinition.MEAN = sum(COST_FROM_TO.values()) / (len(COST_FROM_TO.keys()))
+
+   ProblemDefinition.MIN  = min(COST_FROM_TO.values())
+   ProblemDefinition.MINs = sorted(COST_FROM_TO.values())[:len(cities)+1]
+
 
 def load_problem(filename, ProblemDefinition, filename_solution=None):
 
@@ -58,22 +59,65 @@ def load_problem(filename, ProblemDefinition, filename_solution=None):
          COST_FROM_TO[(i,j)] = COST_FROM_TO[(j,i)] = costs[x]
          x += 1
 
-   # explicit cost for self
-   for i in cities:
-      COST_FROM_TO[(i,i)] = 0
 
    ProblemDefinition.CITIES = frozenset(cities)
    ProblemDefinition.SOLUTION = None # unknown
    ProblemDefinition.SOLUTION_COST = None # unknown
    ProblemDefinition.COST_FROM_TO = COST_FROM_TO
    ProblemDefinition.COUNT_CITIES = len(cities)
+
+   ProblemDefinition.MEAN = sum(COST_FROM_TO.values()) / (len(COST_FROM_TO.keys()))
    
+   ProblemDefinition.MIN  = min(COST_FROM_TO.values())
+   ProblemDefinition.MINs = sorted(COST_FROM_TO.values())[:len(cities)+1]
+
    if filename_solution:
       with open(filename_solution, 'r') as source:
          data = map(int, filter(None, map(lambda s: s.strip(), source.read().split(";")))[:-1])
          
       ProblemDefinition.SOLUTION = tuple(data[:len(cities)+1])
       ProblemDefinition.SOLUTION_COST = data[len(cities)+1]
+
+def load_problem_2(filename, ProblemDefinition, filename_solution):
+   with open(filename) as source:
+      lines = map(lambda s: s.strip(), list(source.readlines()))
+      line_nodes = lines[lines.index("NODE_COORD_SECTION")+1 : lines.index("EOF")]
+   
+   N = len(line_nodes)
+   cities = range(N)
+
+   coords = [map(float, filter(None, line.split())[1:]) for line in line_nodes]
+   
+   # create the city mesh (all the paths and costs)
+   COST_FROM_TO = {}
+   for i in range(N-1):
+      for j in range(i+1, N):
+         x1, y1 = coords[i]
+         x2, y2 = coords[j]
+         c = ((x1-x2)**2 + (y1-y2)**2)**0.5
+
+         COST_FROM_TO[(i,j)] = COST_FROM_TO[(j,i)] = c
+
+   ProblemDefinition.CITIES = frozenset(cities)
+   ProblemDefinition.SOLUTION = None # unknown
+   ProblemDefinition.SOLUTION_COST = None # unknown
+   ProblemDefinition.COST_FROM_TO = COST_FROM_TO
+   ProblemDefinition.COUNT_CITIES = len(cities)
+
+   ProblemDefinition.MEAN = sum(COST_FROM_TO.values()) / (len(COST_FROM_TO.keys()))
+   
+   ProblemDefinition.MIN  = min(COST_FROM_TO.values())
+   ProblemDefinition.MINs = sorted(COST_FROM_TO.values())[:len(cities)+1]
+   
+   if filename_solution:
+      with open(filename_solution, 'r') as source:
+         lines = map(lambda s: s.strip(), list(source.readlines()))
+         data = map(lambda x: int(x)-1, lines[lines.index("TOUR_SECTION")+1 : lines.index("-1")])
+         data.append(data[0])
+         
+      ProblemDefinition.SOLUTION = S = tuple(data)
+      ProblemDefinition.SOLUTION_COST = sum([COST_FROM_TO[(S[i],S[i+1])] for i in range(len(cities))])
+
 
 def test(filename, filename_solution):
    import astar
