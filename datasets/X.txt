@@ -1,0 +1,21 @@
+El 14/05/2015 a las 01:22 p.m., Debi Higa escribió:
+> Seria asi:
+>
+> CantidadDeCiudades(n);
+> C01;C01;...;C0n-1;
+> C12;C13;...;C1n-1;
+> ...
+> Cn-3n-2;Cn-3Cn-1
+> Cn-2n-1
+>
+> Cualquier cosa, avisame :D !
+
+Estos son los inputs que me mando RECIEN DX el profe (JuanCa) para que los corra.
+Para las dos mejores heuristicas pude con todas, para la peor todavia sigue corriendo, por eso para la carpeta H1 faltan algunas salidas. Te paso mis resultados =)
+La salida es asi:
+* Camino
+* Costo
+* Cantidad de nodos abiertos (esto realmente no se si esta 100% bien xD pero me sirve para comparar al menos)
+* Tiempo
+
+Sin apuros, pero estoy ansiosa por comparar resultados :B 
