@@ -28,7 +28,10 @@ class Node(object):
 
 
    def heuristic_remain_cost_H(self):
-      return 0 #(ProblemDefinition.COUNT_CITIES - len(self.path)) * ProblemDefinition.MEAN
+      #return (ProblemDefinition.COUNT_CITIES - len(self.path) + 1) * ProblemDefinition.MEAN # suboptimal
+      return sum(ProblemDefinition.MINs[:(ProblemDefinition.COUNT_CITIES - len(self.path) + 1)])
+      return (ProblemDefinition.COUNT_CITIES - len(self.path)) * ProblemDefinition.MIN
+      return 0
 
    def next_nodes(self):
       if len(self.path) == ProblemDefinition.COUNT_CITIES:
